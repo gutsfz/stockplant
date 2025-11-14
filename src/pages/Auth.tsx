@@ -43,16 +43,16 @@ const Auth = () => {
       <Card className="w-full max-w-md p-8">
         <div className="flex flex-col items-center mb-8">
           <Sprout className="h-16 w-16 text-primary mb-4" />
-          <h1 className="text-3xl font-bold text-foreground">AgroPlan</h1>
+          <h1 className="text-3xl font-bold text-foreground">StockPlant</h1>
           <p className="text-muted-foreground text-center mt-2">
-            Sistema de Planejamento Agrícola
+            Sistema Integrado de Gestão e Comercialização Agrícola:
           </p>
         </div>
 
         <Tabs defaultValue="signin" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="signin">Entrar</TabsTrigger>
-            <TabsTrigger value="signup">Criar Conta</TabsTrigger>
+            
           </TabsList>
 
           <TabsContent value="signin">
