@@ -45,3 +45,13 @@ DB_CONFIG = {
 
 2. Certifique-se de aplicar as migrações do diretório `migrations`..
 3. Inicie o frontend com `npm run dev` (porta padrão `5174`).
+
+
+$env:DJANGO_SUPERUSER_EMAIL='admin@example.com'; 
+$env:DJANGO_SUPERUSER_PASSWORD='Admin123!';
+
+
+Acesso administrativo
+- Usuário: admin
+- Senha: Admin123!
+- Papel: ADMIN em accounts.UserRole
