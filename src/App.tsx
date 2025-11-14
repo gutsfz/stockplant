@@ -186,7 +186,9 @@ export default App;
             path="/admin"
             element={
               <ProtectedRoute>
-                <Admin />
+                <ProtectedByRole allow={["ADMIN"]}>
+                  <Admin />
+                </ProtectedByRole>
               </ProtectedRoute>
             }
           />
