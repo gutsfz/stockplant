@@ -25,5 +25,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('accounts.urls')),
     path('api/farm/', include('farm.urls')),
+    path('api/', include('stockapp.urls')),
     path('api/produtor/dashboard/', ProdutorDashboardView.as_view()),
 ]

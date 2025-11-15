@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listFazendas, type Fazenda } from "@/services/api/farm";
 import { listCultivos, createCultivo, type Cultivo } from "@/services/api/cultivos";
+import { listEstoque, createEntradaEstoque } from "@/services/api/estoque";
 import { listCultivares, type Cultivar } from "@/services/api/cultivares";
 import { useToast } from "@/hooks/use-toast";
 import LineChart from "@/components/Charts/LineChart";
@@ -20,6 +21,7 @@ const Cultivos = () => {
   const qc = useQueryClient();
   const { data: fazendas = [], isLoading: loadingFaz } = useQuery({ queryKey: ["fazendas"], queryFn: listFazendas });
   const { data: cultivos = [], isLoading: loadingCult } = useQuery({ queryKey: ["cultivos"], queryFn: listCultivos });
+  const { data: estoque } = useQuery({ queryKey: ["estoque"], queryFn: () => listEstoque(), refetchOnWindowFocus: false });
 
   const [selectedFazendaId, setSelectedFazendaId] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
@@ -276,6 +278,67 @@ const Cultivos = () => {
     return colheita ? "Em desenvolvimento" : "Plantado";
   };
 
+  const kgEstimado = (c: Cultivo) => {
+    const area = c.area ?? null;
+    const sacas_ha = c.sacas_por_ha ?? null;
+    const kg_saca = c.kg_por_saca ?? 60;
+    if (area == null || sacas_ha == null) return null;
+    return (area || 0) * (sacas_ha || 0) * (kg_saca || 60);
+  };
+
+  const entradasMap = useMemo(() => {
+    const m = new Map<number, { total: number; temColheita: boolean }>();
+    const entradas = estoque?.entradas || [];
+    for (const e of entradas) {
+      const id = Number(e.cultivo_id || 0);
+      if (!id) continue;
+      const prev = m.get(id) || { total: 0, temColheita: false };
+      prev.total += Number(e.quantidade_kg || 0);
+      if ((e.tipo || "").toLowerCase() === "colheita") prev.temColheita = true;
+      m.set(id, prev);
+    }
+    return m;
+  }, [estoque]);
+
+  const registrarMut = useMutation({
+    mutationFn: async (c: Cultivo) => {
+      const kg = kgEstimado(c);
+      if (kg == null || kg <= 0) throw new Error("Informe área e sacas/ha para estimar kg");
+      return createEntradaEstoque({ cultivo_id: c.id, quantidade_kg: kg, tipo: "colheita" });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["estoque"] });
+      toast({ title: "Colheita registrada no estoque" });
+    },
+    onError: (e: any) => {
+      toast({ title: "Erro ao registrar colheita", description: String(e?.message || "") });
+    },
+  });
+
+  useEffect(() => {
+    const all = cultivos || [];
+    if (!all.length) return;
+    try {
+      const key = "stock_auto_colheita_lancados";
+      const raw = localStorage.getItem(key);
+      const done: Record<number, boolean> = raw ? JSON.parse(raw) : {};
+      const toAuto = all.filter((c) => {
+        const st = status(c);
+        const m = entradasMap.get(c.id);
+        return st === "Colhido" && !(m?.temColheita) && !done[c.id];
+      });
+      if (toAuto.length) {
+        const first = toAuto[0];
+        registrarMut.mutate(first, {
+          onSuccess: () => {
+            done[first.id] = true;
+            localStorage.setItem(key, JSON.stringify(done));
+          },
+        });
+      }
+    } catch {}
+  }, [cultivos, entradasMap]);
+
   const chartPlantios = useMemo(() => {
     const byMonth: Record<string, number> = {};
     for (const c of filtered || []) {
@@ -477,6 +540,7 @@ const Cultivos = () => {
                 <TableHead>Est. Sacas</TableHead>
                 <TableHead>Est. Kg</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -494,6 +558,17 @@ const Cultivos = () => {
                     <TableCell>{c.area != null && c.sacas_por_ha != null ? ((c.area || 0) * (c.sacas_por_ha || 0)).toLocaleString("pt-BR") : ""}</TableCell>
                     <TableCell>{c.area != null && c.sacas_por_ha != null ? (((c.area || 0) * (c.sacas_por_ha || 0)) * (c.kg_por_saca || 60)).toLocaleString("pt-BR") : ""}</TableCell>
                     <TableCell>{status(c)}</TableCell>
+                    <TableCell>
+                      {status(c) === "Colhido" ? (
+                        entradasMap.get(c.id)?.temColheita ? (
+                          <span className="text-sm text-muted-foreground">Já lançado</span>
+                        ) : (
+                          <Button size="sm" onClick={() => registrarMut.mutate(c)} disabled={registrarMut.isPending}>Lançar no estoque</Button>
+                        )
+                      ) : (
+                        <span className="text-sm text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
