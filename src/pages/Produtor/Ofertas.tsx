@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { listCultivos, type Cultivo } from "@/services/api/cultivos";
 import { listEstoque } from "@/services/api/estoque";
+import { Link } from "react-router-dom";
 
 export default function Ofertas() {
   const { toast } = useToast();
@@ -90,6 +91,8 @@ export default function Ofertas() {
           <div className="flex gap-2">
             <Button onClick={startCreate}>Nova oferta</Button>
             <Button variant="outline" onClick={() => startEdit(1)}>Editar oferta</Button>
+            <Link to="/produtor/dashboard"><Button variant="outline">Voltar</Button></Link>
+           
           </div>
         </div>
       </Card>

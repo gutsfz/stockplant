@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { listCultivos, type Cultivo } from "@/services/api/cultivos";
 import { listEstoque, createEntradaEstoque, type EstoqueItem, type EstoqueResumo } from "@/services/api/estoque";
-
+import { Link } from "react-router-dom";
 function parseDate(d?: string | null) {
   if (!d) return null;
   const t = Date.parse(d);
@@ -117,8 +117,11 @@ export default function Estoque() {
             <p className="text-3xl font-semibold">{saldo.toLocaleString(undefined, { maximumFractionDigits: 2 })} kg</p>
           </div>
           <div className="flex gap-2">
+            
             <Button onClick={() => { setTipo("colheita"); setOpen(true); }}>Adicionar entrada</Button>
             <Button variant="outline" onClick={() => { setTipo("ajuste"); setOpen(true); }}>Ajustar estoque</Button>
+            <Link to="/produtor/dashboard"><Button variant="outline">Voltar</Button></Link>
+           
           </div>
         </div>
       </Card>
