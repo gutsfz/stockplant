@@ -68,6 +68,7 @@ const Cultivos = () => {
         let endIso = "";
         let lastPlantio: Date | null = null;
         let lastColheita: Date | null = null;
+        const today = new Date();
         const withDates = (filtered || []).filter((c) => !!c.data_plantio && !!c.data_prevista_colheita);
         if (withDates.length > 0) {
           const sorted = [...withDates].sort((a, b) => {
@@ -76,18 +77,22 @@ const Cultivos = () => {
             return db - da;
           });
           const last = sorted[0];
-          const end = new Date(last.data_prevista_colheita as string);
+          const endRaw = new Date(last.data_prevista_colheita as string);
+          const end = endRaw > today ? today : endRaw;
           const start = new Date(end);
           start.setFullYear(end.getFullYear() - 7);
           startIso = toIso(start);
           endIso = toIso(end);
           lastPlantio = new Date(last.data_plantio as string);
-          lastColheita = new Date(last.data_prevista_colheita as string);
+          lastColheita = end;
         } else if (rainPeriod === "custom" && rainStart && rainEnd) {
-          startIso = rainStart;
-          endIso = rainEnd;
+          const s = new Date(rainStart);
+          const eRaw = new Date(rainEnd);
+          const e = eRaw > today ? today : eRaw;
+          const sClamped = s > e ? e : s;
+          startIso = toIso(sClamped);
+          endIso = toIso(e);
         } else {
-          const today = new Date();
           const days = Number(rainPeriod);
           const start = new Date(today.getTime() - (days - 1) * 24 * 60 * 60 * 1000);
           startIso = toIso(start);
