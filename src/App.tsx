@@ -22,6 +22,7 @@ import Carrinho from "@/pages/Cliente/Carrinho";
 import Compra from "@/pages/Cliente/Compra";
 import Historico from "@/pages/Cliente/Historico";
 import NotFound from "./pages/NotFound";
+import { CartProvider } from "@/context/CartContext";
 
 const queryClient = new QueryClient();
 
@@ -56,16 +57,26 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter
-        future={{
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <Routes>
+      <CartProvider>
+        <BrowserRouter
+          future={{
+            v7_relativeSplatPath: true,
+          }}
+        >
+          <Routes>
           <Route path="/auth" element={<Auth />} />
-          <Route path="/ofertas" element={<OfertasLanding />} />
+          <Route
+            path="/ofertas"
+            element={
+              <ProtectedRoute>
+                <ProtectedByRole allow={["CLIENTE"]}>
+                  <OfertasLanding />
+                </ProtectedByRole>
+              </ProtectedRoute>
+            }
+          />
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/auth" replace />} />
+          <Route path="/" element={<Marketplace />} />
           <Route
             path="/produtor/dashboard"
             element={
@@ -176,21 +187,22 @@ const App = () => (
               </ProtectedRoute>
             }
           />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <ProtectedByRole allow={["ADMIN"]}>
+                    <Admin />
+                  </ProtectedByRole>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>
-                <ProtectedByRole allow={["ADMIN"]}>
-                  <Admin />
-                </ProtectedByRole>
-              </ProtectedRoute>
-            }
-          />

@@ -7,15 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { listPublicOfertas, type OfertaPublica } from "@/services/api/marketplace";
 
-type Oferta = {
-  id: number;
-  cultura: string;
-  variedade?: string;
-  origem?: string;
-  preco_kg: number;
-  quantidade_kg: number;
-};
-
 type Oferta = OfertaPublica;
 
 export default function OfertasLanding() {
