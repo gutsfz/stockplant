@@ -4,8 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import models
-from .models import Fazenda, Cultivo
-from .serializers import FazendaSerializer, CultivoSerializer
+from .models import Fazenda, Cultivo, Cultivar
+from .serializers import FazendaSerializer, CultivoSerializer, CultivarSerializer
 from .permissions import IsProdutor, IsOwnerOrReadOnly
 from datetime import date, timedelta
 
@@ -84,4 +84,14 @@ class ProdutorDashboardView(APIView):
         }
         return Response(data, status=status.HTTP_200_OK)
 
-# Create your views here.
+class CultivarViewSet(ModelViewSet):
+    queryset = Cultivar.objects.all()
+    serializer_class = CultivarSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = Cultivar.objects.all().order_by('cultura','variedade')
+        cultura = self.request.query_params.get('cultura')
+        if cultura:
+            qs = qs.filter(cultura__iexact=cultura)
+        return qs
