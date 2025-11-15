@@ -1,6 +1,9 @@
 import axios from "axios";
 
-const base = (import.meta.env.VITE_API_BASE_URL as string | undefined) || "http://127.0.0.1:8000";
+const defaultBase = typeof window !== "undefined"
+  ? `${window.location.protocol}//${window.location.hostname}:8000`
+  : "http://127.0.0.1:8000";
+const base = (import.meta.env.VITE_API_BASE_URL as string | undefined) || defaultBase;
 const baseURL = base.replace(/\/+$/, "") + "/api/";
 
 export const api = axios.create({ baseURL });

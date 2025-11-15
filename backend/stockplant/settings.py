@@ -157,7 +157,15 @@ REST_FRAMEWORK = {
     ),
 }
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5174',
-    'http://127.0.0.1:5174',
-]
+_CORS_ALLOW_ALL = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() in ('1','true','t','yes')
+if _CORS_ALLOW_ALL:
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    _CORS_ALLOWED = os.getenv('CORS_ALLOWED_ORIGINS')
+    if _CORS_ALLOWED:
+        CORS_ALLOWED_ORIGINS = [o.strip() for o in _CORS_ALLOWED.split(',') if o.strip()]
+    else:
+        CORS_ALLOWED_ORIGINS = [
+            'http://localhost:5174',
+            'http://127.0.0.1:5174',
+        ]
